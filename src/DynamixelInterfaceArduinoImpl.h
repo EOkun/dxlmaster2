@@ -4,7 +4,10 @@
 
 #include "DynamixelInterface2.h"
 #include <Arduino.h>
-//#include <SoftwareSerial.h>
+
+#if defined (__AVR__)
+	#include <SoftwareSerial.h>
+#endif /* __AVR__ */
 
 /* 
  * Set UART direction pins so that serial port messages 
@@ -24,12 +27,19 @@
 # 	ifndef DXL_DIR_RXD_PIN
 # 		define DXL_DIR_RXD_PIN 2
 # 	endif
-# elif defined (ESP32)
+# elif defined (__AVR_ATmega32U4__)
 # 	ifndef DXL_DIR_TXD_PIN
-# 		define DXL_DIR_TXD_PIN 5
+# 		define DXL_DIR_TXD_PIN -1
 # 	endif
 # 	ifndef DXL_DIR_RXD_PIN
-# 		define DXL_DIR_RXD_PIN 5
+# 		define DXL_DIR_RXD_PIN -1
+# 	endif
+# elif defined (ESP32)
+# 	ifndef DXL_DIR_TXD_PIN
+# 		define DXL_DIR_TXD_PIN -1
+# 	endif
+# 	ifndef DXL_DIR_RXD_PIN
+# 		define DXL_DIR_RXD_PIN -1
 # 	endif
 # elif defined (__OPENCM904__)
 #	ifndef DXL_DIR_TXD_PIN
@@ -51,6 +61,10 @@
 # elif defined (__AVR_ATmega328P__)
 #	ifndef DXL_SERIAL_PORT
 # 		define DXL_SERIAL_PORT Serial
+# 	endif
+# elif defined (__AVR_ATmega32U4__)
+#	ifndef DXL_SERIAL_PORT
+# 		define DXL_SERIAL_PORT Serial1
 # 	endif
 # elif defined (ESP32)
 #	ifndef DXL_SERIAL_PORT
@@ -99,8 +113,10 @@ public:
 	*/
 	void begin(unsigned long aBaud,
 				void *aStream = &DXL_SERIAL_PORT,
-				uint8_t aTxDirPin = DXL_DIR_TXD_PIN, 
-				uint8_t aRxDirPin = DXL_DIR_RXD_PIN);
+				int8_t aTxDirPin = DXL_DIR_TXD_PIN,
+				int8_t aRxDirPin = DXL_DIR_RXD_PIN,
+                int8_t aTxPin = -1,
+                int8_t aRxPin = -1);
 
     /**
      * \brief Change timeOut
@@ -177,8 +193,8 @@ private:
 	// T &mStream;
 	T *mStream;
 
-	uint8_t mTxDirPin;
-	uint8_t mRxDirPin;
+	int8_t mTxDirPin;
+	int8_t mRxDirPin;
 
 protected:
     const uint8_t mTxPin;

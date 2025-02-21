@@ -13,7 +13,7 @@
 #			define RXCIE RXCIE1
 #		endif
 #	endif
-#endif //__AVR__
+#endif /* __AVR__ */
 
 HardwareDynamixelInterface DxlMaster(&DXL_SERIAL_PORT);
 
@@ -55,8 +55,10 @@ DynamixelInterfaceImpl<T>::~DynamixelInterfaceImpl()
 template<class T>
 void DynamixelInterfaceImpl<T>::begin(unsigned long aBaud, 
 										void *aStream,
-										uint8_t aTxDirPin,
-										uint8_t aRxDirPin)
+										int8_t aTxDirPin,
+										int8_t aRxDirPin,
+                                        int8_t aTxPin,
+                                        int8_t aRxPin)
 {
     mTxDirPin = aTxDirPin;
     mRxDirPin = aRxDirPin;
@@ -68,15 +70,22 @@ void DynamixelInterfaceImpl<T>::begin(unsigned long aBaud,
     mStream = (T *)aStream;
 
 #if defined(ESP32)
-    mStream->begin(115200);
+    if (aRxPin != -1 && aTxPin != -1)
+    {
+        mStream->begin(aBaud, SERIAL_8N1, aRxPin, aTxPin);
+    }
+    else
+    {
+        mStream->begin(aBaud);
+    }
 #else
     mStream->begin(aBaud);
-#endif
+#endif /* ESP32 */
 
     // mStream->write(0);
     // Serial.println("Hello");
     baud = aBaud;
-    mStream->setTimeout(3); // warning : response delay seems much higher than expected for some operation (eg writing eeprom)
+    mStream->setTimeout(6); // warning : response delay seems much higher than expected for some operation (eg writing eeprom)
     readMode();
 }
 
